@@ -1,5 +1,5 @@
 # Packer-windows
-Packer-windows builds Windows images with QEMU and Packer that can be deployed in an OpenStack Cloud with KVM hypervisors. It is a stripped down version of the [bento](https://github.com/chef/bento) repository (which is used to create Vagrant boxes), and incorperates elements from the [Cloudbase Windows Imaging Tools](https://github.com/cloudbase/windows-imaging-tools), which also builds Windows images, albeit on a Hyper-V host. The end result is KVM compatible UEFI images with virtio drivers and [Cloudbase-init](https://cloudbase.it/cloudbase-init/). The target consumers of the images are users of the [Norwegian Research and Education Cloud](nrec.no). The [NREC end user documentation](https://docs.nrec.no/create-windows-machine.html) describes the end user process.
+Packer-windows builds Windows images with QEMU and Packer that can be deployed in an OpenStack Cloud with KVM hypervisors. It is a stripped down version of the [bento](https://github.com/chef/bento) repository (which is used to create Vagrant boxes), and incorperates elements from the [Cloudbase Windows Imaging Tools](https://github.com/cloudbase/windows-imaging-tools), which also builds Windows images, albeit on a Hyper-V host. The end result is KVM compatible UEFI QCOW2 images with virtio drivers and [Cloudbase-init](https://cloudbase.it/cloudbase-init/). The target consumers of the images are users of the [Norwegian Research and Education Cloud](nrec.no). The [NREC end user documentation](https://docs.nrec.no/create-windows-machine.html) describes the end user process.
 
 The build process produces a Windows image updated with the latest updates.
 
@@ -26,6 +26,7 @@ When deploying the image to OpenStack glance, there are some image properties th
   os_require_quiesce:  'yes'         # Recommended when using ceph
   os_type:             'windows'     # Greatly improves KVM performance
 ```
+The final images genrally clock in at about 13GB, but the build process itself needs a disk image that is larger (we set 25GB), so the minimum disk requirement for an instance must be greater than 25GB.
 
 Feedback and contributions are welcome.
 
