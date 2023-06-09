@@ -14,3 +14,4 @@ boot_command            = ["aaaaaaa<wait><enter>"]
 vnc_bind_address        = "0.0.0.0"
 vnc_port_min            = "5998"
 vnc_port_max            = "5999"
+qemu_binary             = "/usr/libexec/qemu-kvm" # el8 distributions

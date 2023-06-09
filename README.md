@@ -26,7 +26,7 @@ When deploying the image to OpenStack glance, there are some image properties th
   os_require_quiesce:  'yes'         # Recommended when using ceph
   os_type:             'windows'     # Greatly improves KVM performance
 ```
-The final images genrally clock in at about 13GB, but the build process itself needs a disk image that is larger (we set 25GB), so the minimum disk requirement for an instance must be greater than 25GB.
+The final images generally clock in at about 13GB, but the build process itself needs a disk image that is larger (we set 25GB), so the minimum disk requirement for an instance must be greater than 25GB.
 
 Feedback and contributions are welcome.
 
