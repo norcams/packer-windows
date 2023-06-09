@@ -35,7 +35,7 @@ locals {
   ) : var.qemu_machine_type
   qemuargs = var.qemuargs == null ? (
     var.qemu_efi == true && var.is_windows ? [
-      ["-bios", "/usr/share/OVMF/OVMF_CODE.fd"],
+      ["-bios", "${path.root}/../../OVMF_CODE.fd"], # Normally this should be "/usr/share/edk2/ovmf/OVMF_CODE.cc.fd"
       ["-drive", "file=${path.root}/../../virtio-win.iso,media=cdrom,index=3"],
       ["-drive", "file=${var.cache_dir}/${var.local_iso},media=cdrom,index=1"],
       ["-drive", "file=${path.root}/../builds/packer-${var.os_name}-${var.os_version}-${var.os_arch}-qemu/{{ .Name }},if=virtio,cache=writeback,discard=ignore,format=qcow2,index=2"],
