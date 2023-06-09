@@ -29,6 +29,10 @@ packer {
       version = ">= 0.14.1"
       source  = "github.com/rgl/windows-update"
     }
+    chef = {
+      version = ">= 1.0.0"
+      source  = "github.com/hashicorp/chef"
+    }
   }
 }
 
