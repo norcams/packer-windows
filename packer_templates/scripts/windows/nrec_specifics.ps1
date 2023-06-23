@@ -24,6 +24,9 @@ netsh advfirewall firewall set rule group = "Network Discovery" new enable=No
 # Set correct timezone
 Set-TimeZone -Id "W. Europe Standard Time"
 
+# Set local ntp servers as external servers may be unreachable due to firewalling
+w32tm /config /manualpeerlist:"ntp1.uio.no ntp2.uio.no" /syncfromflags:manual /update
+
 # Set fancy NREC wallpaper
 $wallpaper = "c:\Users\vagrant\Wallpaper.jpg"
 if(Test-Path $wallpaper)
