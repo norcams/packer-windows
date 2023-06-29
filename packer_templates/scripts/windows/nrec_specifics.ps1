@@ -79,7 +79,7 @@ Disable-LocalUser -Name "Administrator"
 # Force the local interface to use the "public" profile
 Set-NetConnectionProfile -Name "Network" -NetworkCategory Public
 
-$kmsserver="tjur.uib.no"
+$kmsserver="p1-lic01.uib.no"
 $nettest=(Test-NetConnection -ComputerName $kmsserver -Port 1688)
 if ($nettest.TcpTestSucceeded -eq $true)
   {Write-Host "Connection to kms host succesful - trying to activate windows."
