@@ -247,7 +247,7 @@ build {
     elevated_user     = "Administrator"
     scripts = [
       "${path.root}/scripts/windows/cleanup.ps1",
-      "${path.root}/scripts/windows/optimize.ps1"
+      "${path.root}/scripts/windows/optimize.ps1",
       "${path.root}/scripts/windows/run_sysprep.ps1",
 #      "${path.root}/scripts/windows/optimize.ps1"
     ]
