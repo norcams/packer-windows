@@ -104,10 +104,13 @@ if ($LASTEXITCODE) {
 # NB even after cleaning up the WinSxS folder the "Backups and Disabled Features"
 #    field of the analysis report will display a non-zero number because the
 #    disabled features packages are still on disk. you can remove them with:
-Get-WindowsOptionalFeature -Online | Where-Object {$_.State -eq 'Disabled'} | ForEach-Object {
-    Write-Host "Removing feature $($_.FeatureName)..."
-    dism.exe /Online /Quiet /Disable-Feature "/FeatureName:$($_.FeatureName)" /Remove
-}
+
+# \/ Some features are impossible to enable unless you have an updated windows image mounted
+
+#Get-WindowsOptionalFeature -Online | Where-Object {$_.State -eq 'Disabled'} | ForEach-Object {
+#    Write-Host "Removing feature $($_.FeatureName)..."
+#    dism.exe /Online /Quiet /Disable-Feature "/FeatureName:$($_.FeatureName)" /Remove
+#}
 #    NB a removed feature can still be installed from other sources (e.g. windows update).
 Write-Host 'Analyzing the WinSxS folder...'
 dism.exe /Online /Cleanup-Image /AnalyzeComponentStore
