@@ -51,12 +51,12 @@ if(Test-Path $wallpaper)
 
 # Remove Azure Arc Setup
 $OSVersion = (get-itemproperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion" -Name ProductName).ProductName
+$winbuild=$([System.Environment]::OSVersion.Version.Build)
 Write-Host "Removing AzureArcSetup"
 If($OSVersion -eq "Windows Server 2022 Standard") {
   Remove-WindowsFeature AzureArcSetup
   Write-Host "Azure Arc Setup was removed"
-  }
-ElseIf ($winbuild -ge 26100) {
+  } ElseIf ($winbuild -ge 26100) {
   DISM /online /Remove-Capability /CapabilityName:AzureArcSetup~~~~ /NoRestart
   Write-Host "Azure Arc Setup was removed"
 }
