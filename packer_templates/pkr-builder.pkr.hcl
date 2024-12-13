@@ -10,7 +10,7 @@ packer {
       source  = "github.com/hashicorp/parallels"
     }
     qemu = {
-      version = ">= 1.0.8"
+      version = ">= 1.1.0"
       source  = "github.com/hashicorp/qemu"
     }
     vagrant = {
@@ -26,7 +26,7 @@ packer {
       source  = "github.com/hashicorp/vmware"
     }
     windows-update = {
-      version = ">= 0.14.1"
+      version = ">= 0.16.8"
       source  = "github.com/rgl/windows-update"
     }
   }
@@ -178,6 +178,15 @@ build {
     expect_disconnect = true
     scripts           = local.scripts
     except            = var.is_windows ? local.source_names : null
+  }
+
+  provisioner "powershell" {
+    elevated_password = "vagrant"
+    elevated_user     = "Administrator"
+    scripts = [
+      "${path.root}/scripts/windows/disable-recovery.ps1",
+    ]
+    except = var.is_windows ? null : local.source_names
   }
 
   # Windows Updates and scripts
