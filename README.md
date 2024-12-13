@@ -1,10 +1,11 @@
 # Packer-windows
-Packer-windows builds Windows images with QEMU and Packer that can be deployed in an OpenStack Cloud with KVM hypervisors. It is a stripped down version of the [bento](https://github.com/chef/bento) repository (which is used to create Vagrant boxes), and incorperates elements from the [Cloudbase Windows Imaging Tools](https://github.com/cloudbase/windows-imaging-tools), which also builds Windows images, albeit on a Hyper-V host. The end result is KVM compatible UEFI QCOW2 images with virtio drivers and [Cloudbase-init](https://cloudbase.it/cloudbase-init/). The target consumers of the images are users of the [Norwegian Research and Education Cloud](nrec.no). The [NREC end user documentation](https://docs.nrec.no/create-windows-machine.html) describes the end user process.
+Packer-windows builds Windows images with QEMU and Packer that can be deployed in an OpenStack Cloud with KVM hypervisors. It is a stripped down version of the [bento](https://github.com/chef/bento) repository (which is used to create Vagrant boxes), and incorperates elements from the [Cloudbase Windows Imaging Tools](https://github.com/cloudbase/windows-imaging-tools), which also builds Windows images, albeit on a Hyper-V host. The end result is KVM compatible UEFI QCOW2 images with virtio drivers and [Cloudbase-init](https://cloudbase.it/cloudbase-init/). The target consumers of the images are users of the [Norwegian Research and Education Cloud](https://nrec.no). The [NREC end user documentation](https://docs.nrec.no/create-windows-machine.html) describes
+the end user process.
 
 The build process produces a Windows image updated with the latest updates.
 
-***NOTE:**
-It you want to build your own Windows images using this repository, you will want to edit or remove elements in nrec_specifics.ps1. Only Windows Server 2019 Standard and Windows Server 2022 Standard are build and tested by the NREC team.
+***NOTE:***
+It you want to build your own Windows images using this repository, you will want to edit or remove elements in nrec_specifics.ps1. Only Windows Server 2022 Standard and Windows Server 2025 Standard are build and tested by the NREC team.
 
 You must download [the iso image with the Windows drivers for paravirtualized KVM/qemu hardware](https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/stable-virtio/virtio-win.iso). You can do this from the command line: `wget -nv -nc https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/stable-virtio/virtio-win.iso -O virtio-win.iso` and place it in the same directory that contains this repository directory.
 
