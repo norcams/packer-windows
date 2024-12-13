@@ -66,10 +66,7 @@ if ($systemVendor -eq 'QEMU') {
     $guestTools = "f:\virtio-win-guest-tools.exe"
     $guestToolsLog = "c:\windows\temp\guesttools.log"
     Write-Host 'Installing the guest tools...'
-    &$guestTools /install /norestart /quiet /log $guestToolsLog | Out-String -Stream
-    if ($LASTEXITCODE) {
-        throw "failed to install guest tools with exit code $LASTEXITCODE"
-    }
+    Start-Process msiexec.exe -Wait -ArgumentList "/I f:\guest-agent\qemu-ga-x86_64.msi /quiet"
     Write-Host "Done installing the guest tools."
 } elseif ($systemVendor -eq 'innotek GmbH') {
     Write-Host 'Importing the Oracle (for VirtualBox) certificate as a Trusted Publisher...'
