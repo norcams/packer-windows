@@ -15,7 +15,7 @@ $finish = @'
 #
 ##############################################
 
-Start-Sleep -Seconds 6
+Start-Sleep -Seconds 10
 Remove-LocalUser -Name "Vagrant"
 Get-ChildItem -Path C:\Windows\Temp -Include *.* -File -Recurse | foreach { $_.Delete()}
 Set-Item WSMan:\localhost\Service\Auth\Basic -Value False
