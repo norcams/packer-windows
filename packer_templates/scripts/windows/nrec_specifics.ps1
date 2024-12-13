@@ -49,28 +49,73 @@ if(Test-Path $wallpaper)
     }
 }
 
-# Download Firefox and install it
-$SourceURL = "https://download.mozilla.org/?product=firefox-msi-latest-ssl&os=win64&lang=en-US";
-$Installer = $env:TEMP + "\firefox.msi";
-Invoke-WebRequest $SourceURL -OutFile $Installer;
-Start-Process msiexec.exe -Wait -ArgumentList "/I $Installer /quiet"
-
-  # Enable Build-In Component Cleanup for weekly execution
-  $trigger = New-ScheduledTaskTrigger -Weekly -AT "03:00" -DaysOfWeek 'Saturday' -RandomDelay (New-TimeSpan -Hours 4)
-  Set-ScheduledTask -TaskName "\Microsoft\Windows\Servicing\StartComponentCleanup" -Trigger $trigger
-  Enable-ScheduledTask -TaskName "\Microsoft\Windows\Servicing\StartComponentCleanup"
-
-  # Create and enable a task for some housecleaning
-  $trigger2 = New-ScheduledTaskTrigger -Weekly -AT "03:00" -DaysOfWeek 'Thursday' -RandomDelay (New-TimeSpan -Hours 3)
-  $STPrin = New-ScheduledTaskPrincipal -GroupId "BUILTIN\Administrators" -RunLevel Highest
-  $Stask = New-ScheduledTaskAction -Execute "Powershell.exe" -Argument "c:\windows\cleanup.ps1"
-  Register-ScheduledTask Cleanup -Action $Stask -Principal $STPrin -Trigger $trigger2
-
-  # Disable startup of Server Manager on Logon on non-core installs
-  $winedition = $(Get-WindowsEdition -Online).Edition
-  if ($winedition -eq "ServerStandard") {
-    Disable-ScheduledTask -TaskName "\Microsoft\Windows\Server Manager\ServerManager"
+# Remove Azure Arc Setup
+$OSVersion = (get-itemproperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion" -Name ProductName).ProductName
+Write-Host "Removing AzureArcSetup"
+If($OSVersion -eq "Windows Server 2022 Standard") {
+  Remove-WindowsFeature AzureArcSetup
+  Write-Host "Azure Arc Setup was removed"
   }
+ElseIf ($winbuild -ge 26100) {
+  DISM /online /Remove-Capability /CapabilityName:AzureArcSetup~~~~ /NoRestart
+  Write-Host "Azure Arc Setup was removed"
+}
+
+# Download Firefox and install it
+try {
+  Write-Host "Downlad Firefox and install it"
+  $SourceURL = "https://download.mozilla.org/?product=firefox-msi-latest-ssl&os=win64&lang=en-US";
+  $Installer = $env:TEMP + "\firefox.msi";
+  Set-Variable ProgressPreference SilentlyContinue ; Invoke-WebRequest -URI $SourceURL -OutFile $Installer;
+  Start-Process msiexec.exe -Wait -ArgumentList "/I $Installer /quiet"
+  }
+catch {
+   $message = "Tried to install with result $LASTEXITCODE"
+   Write-warning $message
+   CONTINUE
+}
+
+# Remove Edge
+try {
+  Write-Host 'Disable later autoinstall of MS Edge...'
+  New-Item -Path 'HKLM:\Software\Microsoft' -Name 'EdgeUpdate' -Force
+  Set-ItemProperty -Path 'HKLM:\Software\Microsoft\EdgeUpdate' -Name DoNotUpdateToEdgeWithChromium -Value 1
+}
+catch {
+  $message = "Disable autoinstall of MS Edge with result $LASTEXITCODE"
+  Write-warning $message
+  CONTINUE
+}
+try {
+  Write-Host "Remove Edge web browser"
+  & 'c:\Program Files (x86)\Microsoft\Edge\Application\*\Installer\setup.exe' -uninstall -system-level -verbose-logging -force-uninstall
+}
+catch {
+  $message = "Tried to remove Edge with result $LASTEXITCODE"
+  Write-warning $message
+  CONTINUE
+}
+
+Write-Host "Enable Build-In Component Cleanup for weekly execution"
+$trigger = New-ScheduledTaskTrigger -Weekly -AT "03:00" -DaysOfWeek 'Saturday' -RandomDelay (New-TimeSpan -Hours 4)
+Set-ScheduledTask -TaskName "\Microsoft\Windows\Servicing\StartComponentCleanup" -Trigger $trigger
+Enable-ScheduledTask -TaskName "\Microsoft\Windows\Servicing\StartComponentCleanup"
+
+Write-Host "Create and enable a task for some housecleaning"
+$trigger2 = New-ScheduledTaskTrigger -Weekly -AT "03:00" -DaysOfWeek 'Thursday' -RandomDelay (New-TimeSpan -Hours 3)
+$STPrin = New-ScheduledTaskPrincipal -GroupId "BUILTIN\Administrators" -RunLevel Highest
+$Stask = New-ScheduledTaskAction -Execute "Powershell.exe" -Argument "c:\windows\cleanup.ps1"
+Register-ScheduledTask Cleanup -Action $Stask -Principal $STPrin -Trigger $trigger2
+
+Write-Host "Disable startup of Server Manager on Logon on non-core installs"
+try {
+  Disable-ScheduledTask -TaskName "\Microsoft\Windows\Server Manager\ServerManager"
+}
+catch {
+  $message = "Tried to disable ServerManager with result $LASTEXITCODE"
+  Write-warning $message
+  CONTINUE
+}
 
   $startuptask = @'
 # Disable Administrator Account
@@ -92,7 +137,10 @@ Else {Write-Host "Connection to kms host failed - not activating."}
 $winbuild=$([System.Environment]::OSVersion.Version.Build)
 if ($winbuild -gt 17760) {
   Write-Host "Build is 2019 or newer"
-  Add-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0
+  if ($winbuild -le 26100) {
+    Write-Host "Build older than 2025"
+    Add-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0
+  }
   Set-Service sshd -StartupType Automatic
   Set-Service ssh-agent -StartupType Automatic
   Start-Service sshd
@@ -103,6 +151,16 @@ if ($winbuild -gt 17760) {
   $sshconfig | ForEach-Object {$_ -replace $line,"#Match Group administrators"} | Set-Content "C:\ProgramData\ssh\sshd_config"
   $sshconfig = Get-Content "C:\ProgramData\ssh\sshd_config"
   $sshconfig | ForEach-Object {$_ -replace $line2,"#       AuthorizedKeysFile __PROGRAMDATA__/ssh/administrators_authorized_keys"} | Set-Content "C:\ProgramData\ssh\sshd_config"
+  if (!(Get-NetFirewallRule -Name "OpenSSH-Server-In-TCP" -ErrorAction SilentlyContinue | Select-Object Name, Enabled)) {
+    Write-Output "Firewall Rule 'OpenSSH-Server-In-TCP' does not exist, creating it..."
+    New-NetFirewallRule -Name 'OpenSSH-Server-In-TCP' -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22
+  } else {
+    Write-Output "Firewall rule 'OpenSSH-Server-In-TCP' has been created and exists."
+  }
+  if ($winbuild -ge 26100) {
+    Write-Host "Allow SSH from everywhere"
+    Set-NetFirewallRule -Name 'OpenSSH-Server-In-TCP' -Profile Public,Private,Domain
+  }
   Restart-Service sshd
   }
 Else {Write-Host "Build is to old for ssh server"}
@@ -264,3 +322,5 @@ $result = Invoke-Expression $outputfile
 #Write-Output $result
 '@
 $mytask2 | Out-File c:\windows\nrecdownload.ps1
+
+Exit 0
