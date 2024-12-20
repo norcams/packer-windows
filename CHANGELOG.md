@@ -1,5 +1,9 @@
 # Change Log
 
+## [v.1.1.1] (2024-12-20)
+
+- Updated Windows Server 2022 base ISO file
+
 ## [v.1.1.0] (2024-12-13)
 
 - Add support for building Server 2025 images
