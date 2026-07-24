@@ -34,22 +34,18 @@ locals {
     var.os_arch == "aarch64" ? "virt" : "q35"
   ) : var.qemu_machine_type
   qemuargs = var.qemuargs == null ? (
-    var.qemu_efi == true && var.is_windows ? [
-      ["-bios", "${path.root}/../../OVMF_CODE.fd"], # Normally this should be "/usr/share/edk2/ovmf/OVMF_CODE.cc.fd"
-      ["-drive", "file=${path.root}/../../virtio-win.iso,media=cdrom,index=3"],
-      ["-drive", "file=${var.cache_dir}/${var.local_iso},media=cdrom,index=1"],
+    var.is_windows ? [
+      ["-bios", "${path.root}/../../OVMF_CODE.fd"],
+      ["-device", "qemu-xhci"],
+      ["-device", "virtio-tablet"],
       ["-cpu", "host,migratable=on,hv-time=on,hv-relaxed=on,hv-vapic=on,hv-spinlocks=0x1fff"],
-      ["-drive", "file=${path.root}/../builds/packer-${var.os_name}-${var.os_version}-${var.os_arch}-qemu/{{ .Name }},if=virtio,cache=writeback,discard=ignore,format=qcow2,index=2"],
-      ] : (
-      var.is_windows ? [
-        ["-drive", "file=${path.root}/win_answer_files/virtio-win.iso,media=cdrom,index=3"],
-        ["-drive", "file=${path.root}/../builds/packer-${var.os_name}-${var.os_version}-${var.os_arch}-qemu/{{ .Name }},if=virtio,cache=writeback,discard=ignore,format=qcow2,index=1"],
-        ] : (
-        var.os_arch == "aarch64" ? [
-          ["-boot", "strict=off"]
-        ] : null
-      )
-    )
+      ["--drive", "file=${path.root}/../../virtio-win.iso,media=cdrom,index=2"],
+#      ["--drive", "file=${var.cache_dir}/${var.local_iso},media=cdrom,index=1"],
+#      ["--drive", "file=${path.root}/../builds/packer-${var.os_name}-${var.os_version}-${var.os_arch}-qemu/{{ .Name }},if=virtio,cache=writeback,discard=ignore,format=qcow2,index=6"],
+      ["-boot", "strict=off"]
+      ] : [
+      ["-boot", "strict=off"],
+    ]
   ) : var.qemuargs
 
   # virtualbox-iso
@@ -73,26 +69,35 @@ locals {
     var.is_windows ? "60s" : "10s"
   ) : var.boot_wait
   cd_files = var.cd_files == null ? (
-    var.hyperv_generation == 2 && var.is_windows ? [
-      "${path.root}/win_answer_files/${substr(var.os_version, 0, 2)}/gen2_Autounattend.xml"
-    ] : null
+    var.is_windows ? (
+      var.os_arch == "x86_64" ? (
+        var.hyperv_generation == 2 ? [
+          "${path.root}/win_answer_files/${var.os_version}/hyperv-gen2/Autounattend.xml",
+          ] : [
+          "${path.root}/win_answer_files/${var.os_version}/Autounattend.xml",
+        ]
+        ) : [
+        "${path.root}/win_answer_files/${var.os_version}/arm64/Autounattend.xml",
+      ]
+    ) : null
   ) : var.cd_files
   communicator = var.communicator == null ? (
     var.is_windows ? "winrm" : "ssh"
   ) : var.communicator
-  floppy_files = var.floppy_files == null ? (
-    var.hyperv_generation == 2 ? null : (
-      var.is_windows ? [
-        "${path.root}/win_answer_files/${var.os_version}/Autounattend.xml",
-        "${path.root}/scripts/windows/base_setup.ps1"
-        ] : (
-        var.os_name == "springdalelinux" ? [
-          "${path.root}/http/rhel/${substr(var.os_version, 0, 1)}ks.cfg"
-        ] : null
-      )
-    )
-  ) : var.floppy_files
+#  floppy_files = var.floppy_files == null ? (
+#    var.hyperv_generation == 2 ? null : (
+#      var.is_windows ? [
+#        "${path.root}/win_answer_files/${var.os_version}/Autounattend.xml",
+#        "${path.root}/scripts/windows/base_setup.ps1"
+#        ] : (
+#        var.os_name == "springdalelinux" ? [
+#          "${path.root}/http/rhel/${substr(var.os_version, 0, 1)}ks.cfg"
+#        ] : null
+#      )
+#    )
+#  ) : var.floppy_files
   http_directory   = var.http_directory == null ? "${path.root}/http" : var.http_directory
+  iso_target_path = var.iso_target_path == "build_dir_iso" && var.iso_url != null ? "${path.root}/../builds/iso/${var.os_name}-${var.os_version}-${var.os_arch}-${substr(sha256(var.iso_url), 0, 8)}.iso" : var.iso_target_path
   memory           = var.memory == null ? (var.is_windows ? 4096 : 2048) : var.memory
   output_directory = var.output_directory == null ? "${path.root}/../builds/packer-${var.os_name}-${var.os_version}-${var.os_arch}" : var.output_directory
   shutdown_command = var.shutdown_command == null ? (
@@ -117,7 +122,7 @@ source "hyperv-iso" "vm" {
   cpus                  = var.cpus
   communicator          = local.communicator
   disk_size             = var.disk_size
-  floppy_files          = local.floppy_files
+#  floppy_files          = local.floppy_files
   headless              = var.headless
   http_directory        = local.http_directory
   iso_checksum          = var.iso_checksum
@@ -146,7 +151,7 @@ source "parallels-iso" "vm" {
   cpus                   = var.cpus
   communicator           = local.communicator
   disk_size              = var.disk_size
-  floppy_files           = local.floppy_files
+#  floppy_files           = local.floppy_files
   http_directory         = local.http_directory
   iso_checksum           = var.iso_checksum
   iso_url                = var.iso_url
@@ -171,12 +176,15 @@ source "qemu" "vm" {
   qemuargs         = local.qemuargs
   boot_command     = var.boot_command
   boot_wait        = local.boot_wait
+  cd_content       = var.cd_content
+  iso_target_path  = local.iso_target_path
   cd_files         = local.cd_files
+  cd_label         = var.cd_label
   cpus             = var.cpus
   communicator     = local.communicator
   disk_size        = var.disk_size
   format           = var.format
-  floppy_files     = local.floppy_files
+#  floppy_files     = local.floppy_files
   headless         = var.headless
   http_directory   = local.http_directory
   iso_checksum     = var.iso_checksum
@@ -213,7 +221,7 @@ source "virtualbox-iso" "vm" {
   cpus                      = var.cpus
   communicator              = local.communicator
   disk_size                 = var.disk_size
-  floppy_files              = local.floppy_files
+#  floppy_files              = local.floppy_files
   headless                  = var.headless
   http_directory            = local.http_directory
   iso_checksum              = var.iso_checksum
@@ -261,7 +269,7 @@ source "vmware-iso" "vm" {
   cpus                           = var.cpus
   communicator                   = local.communicator
   disk_size                      = var.disk_size
-  floppy_files                   = local.floppy_files
+#  floppy_files                   = local.floppy_files
   headless                       = var.headless
   http_directory                 = local.http_directory
   iso_checksum                   = var.iso_checksum

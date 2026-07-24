@@ -254,9 +254,18 @@ variable "boot_wait" {
   type    = string
   default = null
 }
+variable "cd_content" {
+  type        = map(string)
+  default     = null
+  description = "Content to be served by the cdrom"
+}
 variable "cd_files" {
   type    = list(string)
   default = null
+}
+variable "cd_label" {
+  type    = string
+  default = "cidata"
 }
 variable "cpus" {
   type    = number
@@ -291,6 +300,11 @@ variable "iso_checksum" {
   type        = string
   default     = null
   description = "ISO download checksum"
+}
+variable "iso_target_path" {
+  type        = string
+  default     = "build_dir_iso"
+  description = "Path to store the ISO file. Null will use packer cache default or build_dir_iso will put it in the local build/iso directory."
 }
 variable "iso_url" {
   type        = string

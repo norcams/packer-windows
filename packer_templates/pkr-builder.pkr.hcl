@@ -1,6 +1,10 @@
 packer {
   required_version = ">= 1.7.0"
   required_plugins {
+    host-info = {
+      version = ">= 1.0.0"
+      source  = "github.com/stromweld/host-info"
+    }
     hyperv = {
       version = ">= 1.0.0"
       source  = "github.com/hashicorp/hyperv"
