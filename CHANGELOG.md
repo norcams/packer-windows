@@ -1,5 +1,15 @@
 # Change Log
 
+## [v.1.2.0] (2026-07-28)
+
+- Replaced floppy with CD iso for serving unattended.xml for Enterprise Linux
+  Compatibility
+- Updated Enterprise Linux VM machine type as floppy drive is no longer needed
+- Removed shutdown provisioner as this is handled by a script running after sysprep,
+  the shutdown provisioner caused builds to fail.
+- Synced cleanup and optimize scripts with upstream Bento
+- Updated Windows Server 2022 and 2025 base ISO files for NREC builds
+
 ## [v.1.1.1] (2024-12-20)
 
 - Updated Windows Server 2022 base ISO file
