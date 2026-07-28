@@ -1,5 +1,9 @@
 # Change Log
 
+## [v.1.2.1] (2026-07-28)
+
+- Fixed feature removal regression bug
+
 ## [v.1.2.0] (2026-07-28)
 
 - Replaced floppy with CD iso for serving unattended.xml for Enterprise Linux
