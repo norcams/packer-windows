@@ -191,7 +191,7 @@ source "qemu" "vm" {
   iso_url          = var.iso_url
   memory           = local.memory
   output_directory = "${local.output_directory}-qemu"
-  shutdown_command = local.shutdown_command
+#  shutdown_command = local.shutdown_command
   shutdown_timeout = var.shutdown_timeout
   ssh_password     = var.ssh_password
   ssh_port         = var.ssh_port
