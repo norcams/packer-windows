@@ -1,5 +1,9 @@
 # Change Log
 
+## [v.1.2.2] (2026-07-28)
+
+- Fixed download URL for iso used by NREC builds
+
 ## [v.1.2.1] (2026-07-28)
 
 - Fixed feature removal regression bug
