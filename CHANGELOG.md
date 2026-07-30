@@ -1,5 +1,10 @@
 # Change Log
 
+## [v.1.2.3] (2026-07-30)
+
+- Excluded windows updates from Red Hat which prevented the image updating from
+  succeeding due to user input
+
 ## [v.1.2.2] (2026-07-28)
 
 - Fixed download URL for iso used by NREC builds

@@ -206,6 +206,10 @@ build {
   provisioner "windows-update" {
     search_criteria = "IsInstalled=0"
     except          = var.is_windows ? null : local.source_names
+    filters = [ 
+      "exclude:$_.InstallationBehavior.CanRequestUserInput",
+      "include:$true",
+    ]
   }
   provisioner "windows-restart" {
     except = var.is_windows ? null : local.source_names
