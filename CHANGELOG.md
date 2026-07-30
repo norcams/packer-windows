@@ -1,5 +1,9 @@
 # Change Log
 
+## [v.1.2.4] (2026-07-30)
+
+- Updated name and organization
+
 ## [v.1.2.3] (2026-07-30)
 
 - Excluded windows updates from Red Hat which prevented the image updating from
